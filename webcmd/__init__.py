@@ -5,8 +5,9 @@ Created on Mon Dec 29 11:43:24 2014
 @author: pablo
 """
 from Queue import Queue
-from flask import Flask, Response, jsonify, request, stream_with_context
+from flask import Flask, Response, jsonify, request
 import time, os
+import pyte
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -14,6 +15,9 @@ sys.setdefaultencoding("utf-8")
 app = Flask(__name__)
 subscriptions = []
 
+screen = pyte.Screen(80, 24)
+stream = pyte.Stream()
+stream.attach(screen)
 
 def srender_template(template_name, **context):
     app.update_template_context(context)
@@ -152,7 +156,7 @@ def subscribe():
         subscriptions.append(q)
         try:
             while True:
-                result = q.get()
+                #result = q.get()
                 cmd_getter = FileCmdGetter('/tmp/resps.txt')
                 cmd_getter.read_cmds_and_delete()
                 temp = srender_template('table.html', lines=cmd_getter.get_cmds())
@@ -173,10 +177,20 @@ def listresponses():
     return jsonify(cmds=cmd_getter.get_cmds())
     
 
+@app.route('/showscreen')
+def showscreen():
+    str_screen = ''
+    for idx, line in enumerate(screen.display, 1):
+        str_screen += "{0:2d} {1}{2}".format(idx, line, '<br>')
+    return str_screen
+
+
 @app.route('/putresponse', methods=['POST'])
 def putresponse():
+    text = request.form['text']
+    stream.feed(text)
     with open('/tmp/resps.txt', 'a') as respfile:
-        respfile.write(request.form['text'])
+        respfile.write(text)
     notify()
     return "ok"
    
@@ -191,4 +205,4 @@ def addcmds():
 
 if __name__ == '__main__':
     app.debug = True
-    app.run(threaded=True)
+    app.run(host='0.0.0.0', threaded=True)
