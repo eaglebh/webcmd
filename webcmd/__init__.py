@@ -5,14 +5,19 @@ Created on Mon Dec 29 11:43:24 2014
 @author: pablo
 """
 from Queue import Queue
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, redirect, url_for
+from werkzeug import secure_filename
 import time, os
 import pyte
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
+UPLOAD_FOLDER = '/var/www/webcmd/webcmd/static/uploads'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 subscriptions = []
 
 screen = pyte.Screen(175, 45)
@@ -204,6 +209,25 @@ def addcmds():
         cmdsfile.write(cmd + '\n')
     return "ok"
 
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        myfile = request.files['file']
+        if myfile:
+            filename = secure_filename(myfile.filename)
+            myfile.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return "ok"
+    return '''
+    <!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload File</h1>
+    <form action="" method=post enctype=multipart/form-data>
+      <p><input type=file name=file>
+         <input type=submit value=Upload>
+    </form>
+    '''
+    
 
 if __name__ == '__main__':
     app.debug = True
