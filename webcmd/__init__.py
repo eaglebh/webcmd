@@ -15,7 +15,7 @@ sys.setdefaultencoding("utf-8")
 app = Flask(__name__)
 subscriptions = []
 
-screen = pyte.Screen(80, 24)
+screen = pyte.Screen(175, 45)
 stream = pyte.Stream()
 stream.attach(screen)
 
@@ -82,14 +82,16 @@ class FileCmdGetter:
 def getcmds():
     cmd_getter = FileCmdGetter('/tmp/cmds.txt')
     cmd_getter.read_cmds_and_delete()
-    return jsonify(cmds=cmd_getter.get_cmds())
+    resp = jsonify(cmds=cmd_getter.get_cmds())
+    return resp
 
 
 @app.route('/listcmds')
 def listcmds():
     cmd_getter = FileCmdGetter('/tmp/cmds.txt')
     cmd_getter.read_cmds()
-    return jsonify(cmds=cmd_getter.get_cmds())
+    resp = jsonify(cmds=cmd_getter.get_cmds())
+    return resp.get_data().decode('string_escape')
 
 
 @app.route('/getresponses')
@@ -100,7 +102,7 @@ def getresponses():
             <script src="http://code.jquery.com/jquery-latest.js"></script>
             <script>                
                 function update() {
-                    $.get('/webcmd/update', function( data ) {
+                    $.get('/webcmd/updateRemove', function( data ) {
                         if (!jQuery.isEmptyObject(data)) {
                             console.log(data);
                             var innerDiv = document.createElement('div');
@@ -141,8 +143,8 @@ def getresponses():
     return(debug_template)
 
 
-@app.route("/update")
-def update():
+@app.route("/updateRemove")
+def updateRemove():
     cmd_getter = FileCmdGetter('/tmp/resps.txt')
     cmd_getter.read_cmds_and_delete()
     temp = srender_template('table.html', lines=cmd_getter.get_cmds())
