@@ -99,6 +99,14 @@ def getweb2srv():
     return resp
 
 
+@app.route('/getsrv2web')
+def getsrv2web():
+    down_getter = FileCmdGetter('/tmp/downs.txt')
+    down_getter.read_cmds_and_delete()
+    resp = jsonify(srv2web=down_getter.get_cmds())
+    return resp
+    
+
 @app.route('/listcmds')
 def listcmds():
     cmd_getter = FileCmdGetter('/tmp/cmds.txt')
@@ -226,12 +234,21 @@ def addups():
     return "ok"
 
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/adddown')
+def adddowns():
+    down = request.args.get('down')
+    with open('/tmp/downs.txt', 'a') as downsfile:
+        downsfile.write(down + '\n')
+    return "ok"
+
+
+@app.route('/upload/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        myfile = request.files['file']
-        if myfile:
+        myfile = request.files['file']        
+        if myfile:            
             filename = secure_filename(myfile.filename)
+            print("filename="+str(os.path.join(app.config['UPLOAD_FOLDER'], filename)))
             myfile.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return "ok"
     return '''
