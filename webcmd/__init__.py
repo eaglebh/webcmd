@@ -5,7 +5,7 @@ Created on Mon Dec 29 11:43:24 2014
 @author: pablo
 """
 from Queue import Queue
-from flask import Flask, Response, jsonify, request, redirect, url_for
+from flask import Flask, Response, jsonify, request, json, url_for
 from werkzeug import secure_filename
 import time, os
 import pyte
@@ -91,6 +91,14 @@ def getcmds():
     return resp
 
 
+@app.route('/getweb2srv')
+def getweb2srv():
+    up_getter = FileCmdGetter('/tmp/ups.txt')
+    up_getter.read_cmds_and_delete()
+    resp = jsonify(web2srv=up_getter.get_cmds())
+    return resp
+
+
 @app.route('/listcmds')
 def listcmds():
     cmd_getter = FileCmdGetter('/tmp/cmds.txt')
@@ -107,7 +115,7 @@ def getresponses():
             <script src="http://code.jquery.com/jquery-latest.js"></script>
             <script>                
                 function update() {
-                    $.get('/webcmd/updateRemove', function( data ) {
+                    $.get('""" + url_for('/updateRemove') + """', function( data ) {
                         if (!jQuery.isEmptyObject(data)) {
                             console.log(data);
                             var innerDiv = document.createElement('div');
@@ -119,7 +127,7 @@ def getresponses():
             </script>
        </head>
        <body>
-        <h1>Server sent events %s</h1>
+        <h1>Server sent events </h1>
         <div id="event"></div>
         <script>
             $( document ).ready(function() {
@@ -144,7 +152,7 @@ def getresponses():
          </script-->
        </body>
      </html>
-    """ % (time.strftime("%H:%M:%S"))
+    """
     return(debug_template)
 
 
@@ -207,6 +215,14 @@ def addcmds():
     cmd = request.args.get('cmd')
     with open('/tmp/cmds.txt', 'a') as cmdsfile:
         cmdsfile.write(cmd + '\n')
+    return "ok"
+
+
+@app.route('/addup')
+def addups():
+    up = request.args.get('up')
+    with open('/tmp/ups.txt', 'a') as upsfile:
+        upsfile.write(up + '\n')
     return "ok"
 
 
