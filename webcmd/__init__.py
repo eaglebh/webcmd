@@ -13,7 +13,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-UPLOAD_FOLDER = '/var/www/webcmd/webcmd/static/uploads'
+UPLOAD_FOLDER = '/var/www/webcmd/webcmd/static/upload'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
