@@ -115,7 +115,7 @@ def getresponses():
             <script src="http://code.jquery.com/jquery-latest.js"></script>
             <script>                
                 function update() {
-                    $.get('""" + url_for('/updateRemove') + """', function( data ) {
+                    $.get('""" + url_for('updateRemove') + """', function( data ) {
                         if (!jQuery.isEmptyObject(data)) {
                             console.log(data);
                             var innerDiv = document.createElement('div');
