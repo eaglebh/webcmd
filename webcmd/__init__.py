@@ -13,6 +13,10 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
+import logging
+logging.basicConfig(filename='/tmp/pytentus.log', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 UPLOAD_FOLDER = '/var/www/webcmd/webcmd/static/upload'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
@@ -20,7 +24,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 subscriptions = []
 
-screen = pyte.Screen(175, 45)
+screen = pyte.Screen(80, 45)
 stream = pyte.Stream()
 stream.attach(screen)
 
@@ -69,13 +73,19 @@ class FileCmdGetter:
     
     def read_cmds(self):
         self.cmds = []
-        with open(self.filename, 'r') as cmdsfile:
-            for line in cmdsfile:
-                self.cmds.append(line.strip())
+        try:
+            with open(self.filename, 'r') as cmdsfile:
+                for line in cmdsfile:
+                    self.cmds.append(line.strip())
+        except:
+            pass
                 
     def read_cmds_and_delete(self):
         self.read_cmds()
-        os.unlink(self.filename)
+        try:
+            os.unlink(self.filename)
+        except:
+            pass
         with open(self.filename, 'w') as cmdsfile:
             cmdsfile.write('')
                 
@@ -120,7 +130,7 @@ def getresponses():
     debug_template = """
     <html>
        <head>
-            <script src="http://code.jquery.com/jquery-latest.js"></script>
+            <script src="static/jquery-latest.js"></script>
             <script>                
                 function update() {
                     $.get('""" + url_for('updateRemove') + """', function( data ) {
@@ -142,7 +152,7 @@ def getresponses():
                 eventOutputContainer = document.getElementById("event");
                 setInterval(function() {
                     update();
-                }, 10000);
+                }, 5000);
             });
         </script>
          <!--script type="text/javascript">
@@ -211,6 +221,7 @@ def showscreen():
 @app.route('/putresponse', methods=['POST'])
 def putresponse():
     text = request.form['text']
+    logger.info('resp: %s', text)
     stream.feed(text)
     with open('/tmp/resps.txt', 'a') as respfile:
         respfile.write(text)
